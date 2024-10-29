@@ -1,27 +1,30 @@
-const request = require('needle');
+const request = require('request');
 
 const fetchMyIP = function(callback) {
   const url = 'https://api.ipify.org?format=json';
 
-  // Set json option to true to automatically parse the response body
-  request.get(url, { json: true }, (error, response) => {
-    // Handle any error that occurred during the request
+  request(url, (error, response, body) => {
     if (error) {
       callback(error, null);
       return;
     }
 
-    // Check for a non-200 status code
+    // Check for a non-200 status code and return only the status code with a generic message
     if (response.statusCode !== 200) {
-      const msg = `Status Code ${response.statusCode} when fetching IP. Response: ${JSON.stringify(response.body)}`;
-      callback(Error(msg), null);
+      callback(Error(`Status Code ${response.statusCode} when fetching IP.`), null);
       return;
     }
 
-    // If everything is okay, extract the IP address
-    const ip = response.body.ip;
-    callback(null, ip);
+    // Parse the body to get the IP address
+    try {
+      const data = JSON.parse(body);
+      const ip = data.ip;
+      callback(null, ip);
+    } catch (parseError) {
+      callback(Error("Failed to parse IP address"), null);
+    }
   });
 };
 
 module.exports = { fetchMyIP };
+
