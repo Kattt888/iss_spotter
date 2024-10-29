@@ -26,5 +26,32 @@ const fetchMyIP = function(callback) {
   });
 };
 
-module.exports = { fetchMyIP };
+// Function to fetch IP coordinates 
+const fetchCoordsByIP = function(ip, callback) {
+  const url = `https://ipwho.is/${ip}`;
+
+  request(url, (error, response, body) => {
+    if (error) {
+      callback(error, null);
+      return;
+    }
+
+    // Parse the body
+    const data = JSON.parse(body);
+
+    // Check for success status in the response
+    if (!data.success) {
+      const message = `Success status was false. Server message says: ${data.message} when fetching for IP ${ip}`;
+      callback(Error(message), null);
+      return;
+    }
+
+    // Extract latitude and longitude
+    const { latitude, longitude } = data;
+    callback(null, { latitude, longitude });
+  });
+};
+
+
+module.exports = { fetchMyIP, fetchCoordsByIP };
 
